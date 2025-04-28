@@ -1,0 +1,80 @@
+# Python files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Flask stuff
+instance/
+.webassets-cache
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment variables and credentials
+.env
+.credentials
+.vscode/
+.idea/
+
+# Database files
+*.db
+*.sqlite3
+*.sqlite
+*.csv
+transaction_data.csv
+
+# Model files (large binary files)
+models/*.h5
+models/*.pb
+models/*.ckpt*
+models/*.index
+models/*.meta
+models/*.data*
+
+# Logs
+logs/
+*.log
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
