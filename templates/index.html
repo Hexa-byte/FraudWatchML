@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}FraudWatch - Enterprise Fraud Detection{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-dark p-5 rounded">
+    <div class="container text-center">
+        <h1 class="display-4">
+            <i class="fas fa-shield-alt me-3"></i>FraudWatch
+        </h1>
+        <p class="lead">Enterprise-Grade Fraud Detection System</p>
+        <p>Leveraging TensorFlow to reduce false positives by 40% and detect 99% of fraudulent transactions.</p>
+
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card mb-4 bg-secondary">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="fas fa-robot fa-2x mb-3"></i><br>
+                            Hybrid Models
+                        </h5>
+                        <p class="card-text">Combines unsupervised anomaly detection with supervised classification for optimal accuracy.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 bg-secondary">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="fas fa-bolt fa-2x mb-3"></i><br>
+                            Real-Time Scoring
+                        </h5>
+                        <p class="card-text">Process transactions with less than 200ms latency for immediate decisions.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 bg-secondary">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="fas fa-lock fa-2x mb-3"></i><br>
+                            Regulatory Compliant
+                        </h5>
+                        <p class="card-text">Adheres to GDPR, PCI DSS, SOX, and CCPA standards for financial security.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('monitoring.dashboard') }}" class="btn btn-primary btn-lg">View Dashboard</a>
+            {% else %}
+            <a href="{{ url_for('security.login') }}" class="btn btn-primary btn-lg">Login to Access</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Key Performance Metrics</h2>
+            <div class="card bg-dark">
+                <div class="card-body">
+                    <ul class="list-group list-group-flush bg-dark">
+                        <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                            Precision
+                            <span class="badge bg-primary rounded-pill">95%+</span>
+                        </li>
+                        <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                            Recall
+                            <span class="badge bg-primary rounded-pill">98%+</span>
+                        </li>
+                        <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                            Latency
+                            <span class="badge bg-primary rounded-pill">&lt; 200ms</span>
+                        </li>
+                        <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                            False Positive Reduction
+                            <span class="badge bg-primary rounded-pill">40%</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h2>Fraud Detection Capabilities</h2>
+            <div class="card bg-dark">
+                <div class="card-body">
+                    <ul class="list-group list-group-flush bg-dark">
+                        <li class="list-group-item bg-dark">
+                            <i class="fas fa-check-circle text-success me-2"></i> Real-time payment fraud detection (ACH, wire, card)
+                        </li>
+                        <li class="list-group-item bg-dark">
+                            <i class="fas fa-check-circle text-success me-2"></i> Account takeover prevention (behavioral biometrics)
+                        </li>
+                        <li class="list-group-item bg-dark">
+                            <i class="fas fa-check-circle text-success me-2"></i> Seamless integration with core banking systems
+                        </li>
+                        <li class="list-group-item bg-dark">
+                            <i class="fas fa-check-circle text-success me-2"></i> Hybrid model architecture (Autoencoder + GBM)
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

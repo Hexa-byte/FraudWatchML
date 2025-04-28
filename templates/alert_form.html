@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}FraudWatch - Create Alert{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-bell me-2"></i>Create Alert Configuration</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('alerts') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Alerts
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Alert Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('new_alert') }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Alert Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="form-text">A descriptive name for this alert configuration.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        <div class="form-text">Optional description of the alert's purpose and triggers.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="condition" class="form-label">Alert Condition (JSON)</label>
+                        <textarea class="form-control font-monospace" id="condition" name="condition" rows="5" required>{"field": "fraud_score", "operator": "gt"}</textarea>
+                        <div class="form-text">JSON condition that triggers the alert. Available operators: gt, lt, eq, neq.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="threshold" class="form-label">Threshold Value</label>
+                        <input type="number" class="form-control" id="threshold" name="threshold" step="0.01" required>
+                        <div class="form-text">The threshold value for triggering this alert.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notification_emails" class="form-label">Notification Emails</label>
+                        <input type="text" class="form-control" id="notification_emails" name="notification_emails" placeholder="email1@example.com, email2@example.com">
+                        <div class="form-text">Comma-separated email addresses for alert notifications.</div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="active" name="active" checked>
+                        <label class="form-check-label" for="active">Active</label>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>Alert Examples</h5>
+                        <ul class="mb-0">
+                            <li><strong>High Score Alert:</strong> {"field": "fraud_score", "operator": "gt"} with threshold 0.8</li>
+                            <li><strong>Large Amount Alert:</strong> {"field": "amount", "operator": "gt"} with threshold 10000</li>
+                            <li><strong>Specific Payment Method:</strong> {"field": "payment_method", "operator": "eq", "value": "crypto"}</li>
+                            <li><strong>High-Risk Merchant:</strong> {"field": "merchant_id", "operator": "in", "value": ["merchant_123", "merchant_456"]}</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="text-end mt-4">
+                        <a href="{{ url_for('alerts') }}" class="btn btn-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Create Alert</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

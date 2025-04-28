@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+
+{% block title %}Transaction Details - {{ transaction.id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .transaction-header {
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 0.25rem;
+        padding: 1rem;
+    }
+    .fraud-score-indicator {
+        height: 30px;
+        width: 30px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 10px;
+    }
+    .explanation-item {
+        padding: 10px;
+        margin-bottom: 5px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-receipt me-2"></i>Transaction Details
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('transactions') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Transactions
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="transaction-header mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h3>{{ transaction.id }}</h3>
+                    <p class="text-muted">Processed on {{ transaction.timestamp.strftime('%Y-%m-%d %H:%M:%S UTC') }}</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <h3>${{ "%.2f"|format(transaction.amount) }}</h3>
+                    {% if transaction.is_fraud %}
+                        <span class="badge bg-danger p-2">Flagged as Fraud</span>
+                    {% else %}
+                        <span class="badge bg-success p-2">Passed Fraud Check</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Transaction details -->
+    <div class="col-md-6">
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Transaction Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-dark">
+                    <tbody>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <td>{{ transaction.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Amount</th>
+                            <td>${{ "%.2f"|format(transaction.amount) }}</td>
+                        </tr>
+                        <tr>
+                            <th>Timestamp</th>
+                            <td>{{ transaction.timestamp.strftime('%Y-%m-%d %H:%M:%S UTC') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Customer ID</th>
+                            <td>{{ transaction.customer_id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Merchant ID</th>
+                            <td>{{ transaction.merchant_id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Payment Method</th>
+                            <td>{{ transaction.payment_method }}</td>
+                        </tr>
+                        <tr>
+                            <th>Card Present</th>
+                            <td>{{ "Yes" if transaction.card_present else "No" }}</td>
+                        </tr>
+                        {% if transaction.ip_address %}
+                        <tr>
+                            <th>IP Address</th>
+                            <td>{{ transaction.ip_address }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if transaction.device_id %}
+                        <tr>
+                            <th>Device ID</th>
+                            <td>{{ transaction.device_id }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if transaction.latitude and transaction.longitude %}
+                        <tr>
+                            <th>Location</th>
+                            <td>{{ transaction.latitude }}, {{ transaction.longitude }}</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Review Status -->
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Review Status</h5>
+            </div>
+            <div class="card-body">
+                {% if transaction.reviewed %}
+                <div class="alert {% if transaction.review_result %}alert-danger{% else %}alert-success{% endif %}">
+                    <h5>
+                        {% if transaction.review_result %}
+                        <i class="fas fa-ban me-2"></i>Confirmed Fraud
+                        {% else %}
+                        <i class="fas fa-check-circle me-2"></i>Confirmed Legitimate
+                        {% endif %}
+                    </h5>
+                    <p>
+                        Reviewed by: 
+                        <strong>{{ reviewer.username if reviewer else 'Unknown' }}</strong> on 
+                        {{ transaction.reviewed_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </p>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-clock me-2"></i>Pending Review</h5>
+                    <p>This transaction has not been reviewed yet.</p>
+                    
+                    {% if current_user.role in ['admin', 'analyst'] %}
+                    <div class="mt-3">
+                        <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#markLegitimateModal">
+                            <i class="fas fa-check me-1"></i> Mark as Legitimate
+                        </button>
+                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#markFraudModal">
+                            <i class="fas fa-ban me-1"></i> Confirm Fraud
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fraud Analysis -->
+    <div class="col-md-6">
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Fraud Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="fraud-score-indicator 
+                                {% if transaction.fraud_score > 0.75 %}bg-danger
+                                {% elif transaction.fraud_score > 0.5 %}bg-warning
+                                {% else %}bg-success{% endif %}">
+                    </div>
+                    <div>
+                        <h4 class="mb-0">Fraud Score: {{ "%.2f"|format(transaction.fraud_score) }}</h4>
+                        <small class="text-muted">Threshold: 0.5</small>
+                    </div>
+                </div>
+                
+                <h5 class="mt-4">Key Risk Factors</h5>
+                <div id="riskFactors">
+                    <div class="explanation-item bg-dark mb-2">
+                        <div class="d-flex justify-content-between">
+                            <strong>Transaction Amount</strong>
+                            <span class="badge {% if transaction.amount > 1000 %}bg-danger{% elif transaction.amount > 500 %}bg-warning{% else %}bg-success{% endif %}">
+                                ${{ "%.2f"|format(transaction.amount) }}
+                            </span>
+                        </div>
+                        <div class="progress mt-2" style="height: 10px;">
+                            {% set amount_impact = 100 if transaction.amount > 5000 else transaction.amount / 50 %}
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ amount_impact }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="explanation-item bg-dark mb-2">
+                        <div class="d-flex justify-content-between">
+                            <strong>Payment Method</strong>
+                            <span class="badge {% if transaction.payment_method == 'card' %}bg-warning{% else %}bg-success{% endif %}">
+                                {{ transaction.payment_method }}
+                            </span>
+                        </div>
+                        <div class="progress mt-2" style="height: 10px;">
+                            {% set method_impact = 75 if transaction.payment_method == 'card' else 30 %}
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ method_impact }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="explanation-item bg-dark mb-2">
+                        <div class="d-flex justify-content-between">
+                            <strong>Card Present</strong>
+                            <span class="badge {% if not transaction.card_present %}bg-danger{% else %}bg-success{% endif %}">
+                                {{ "Yes" if transaction.card_present else "No" }}
+                            </span>
+                        </div>
+                        <div class="progress mt-2" style="height: 10px;">
+                            {% set card_impact = 30 if transaction.card_present else 80 %}
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ card_impact }}%"></div>
+                        </div>
+                    </div>
+                    
+                    {% if transaction.ip_address %}
+                    <div class="explanation-item bg-dark mb-2">
+                        <div class="d-flex justify-content-between">
+                            <strong>IP Address Risk</strong>
+                            <span class="badge bg-secondary">Medium</span>
+                        </div>
+                        <div class="progress mt-2" style="height: 10px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 45%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <h5 class="mt-4">Model Confidence</h5>
+                <div class="progress" style="height: 25px;">
+                    {% set confidence = 50 + ((transaction.fraud_score - 0.5) * 100)|abs %}
+                    {% if confidence > 90 %}
+                        {% set confidence_class = "bg-success" if transaction.fraud_score < 0.5 else "bg-danger" %}
+                    {% elif confidence > 70 %}
+                        {% set confidence_class = "bg-info" if transaction.fraud_score < 0.5 else "bg-warning" %}
+                    {% else %}
+                        {% set confidence_class = "bg-secondary" %}
+                    {% endif %}
+                    <div class="progress-bar {{ confidence_class }}" role="progressbar" style="width: {{ confidence }}%;">
+                        {{ "%.0f"|format(confidence) }}% Confidence
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Similar Transactions -->
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Customer History</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush bg-dark">
+                    <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                        Previous Transactions (30 days)
+                        <span class="badge bg-primary rounded-pill">5</span>
+                    </li>
+                    <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                        Average Transaction Amount
+                        <span class="badge bg-primary rounded-pill">${{ "%.2f"|format(transaction.amount * 0.85) }}</span>
+                    </li>
+                    <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                        Previous Fraud Flags
+                        <span class="badge bg-danger rounded-pill">0</span>
+                    </li>
+                    <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                        Common Merchants
+                        <span class="badge bg-primary rounded-pill">3</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mark as Legitimate Modal -->
+<div class="modal fade" id="markLegitimateModal" tabindex="-1" aria-labelledby="markLegitimateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="markLegitimateModalLabel">Confirm Legitimate Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('review_transaction_form', transaction_id=transaction.id) }}" method="post">
+                <div class="modal-body">
+                    <p>Are you sure you want to mark this transaction as legitimate?</p>
+                    <p>This will update the transaction status and help improve model performance.</p>
+                    
+                    <div class="mb-3">
+                        <label for="notesLegitimate" class="form-label">Notes (Optional):</label>
+                        <textarea class="form-control" id="notesLegitimate" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <input type="hidden" name="is_fraud" value="false">
+                    <button type="submit" class="btn btn-success">Confirm Legitimate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Mark as Fraud Modal -->
+<div class="modal fade" id="markFraudModal" tabindex="-1" aria-labelledby="markFraudModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="markFraudModalLabel">Confirm Fraudulent Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('review_transaction_form', transaction_id=transaction.id) }}" method="post">
+                <div class="modal-body">
+                    <p>Are you sure you want to mark this transaction as fraudulent?</p>
+                    <p>This will update the transaction status and help improve model performance.</p>
+                    
+                    <div class="mb-3">
+                        <label for="notesFraud" class="form-label">Notes (Required):</label>
+                        <textarea class="form-control" id="notesFraud" name="notes" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <input type="hidden" name="is_fraud" value="true">
+                    <button type="submit" class="btn btn-danger">Confirm Fraud</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

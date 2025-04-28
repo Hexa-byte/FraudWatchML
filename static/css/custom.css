@@ -1,0 +1,215 @@
+/**
+ * FraudWatch - Custom CSS
+ * Custom styling for the FraudWatch application
+ */
+
+/* Global styles */
+:root {
+  --fraudwatch-primary: var(--bs-primary);
+  --fraudwatch-secondary: var(--bs-secondary);
+  --fraudwatch-success: var(--bs-success);
+  --fraudwatch-danger: var(--bs-danger);
+  --fraudwatch-warning: var(--bs-warning);
+  --fraudwatch-info: var(--bs-info);
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+/* Card hover effects */
+.metric-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metric-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Dashboard components */
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+.fraud-score-indicator {
+  display: inline-block;
+  width: 12px;
+  height: a2px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+/* Alert and notification styling */
+.alert-pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--bs-danger-rgb), 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(var(--bs-danger-rgb), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--bs-danger-rgb), 0);
+  }
+}
+
+/* Transaction review styling */
+.transaction-row {
+  transition: background-color 0.2s;
+}
+
+.transaction-row:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+.fraud-probability-bar {
+  height: 20px;
+  background: linear-gradient(to right, var(--bs-success), var(--bs-warning), var(--bs-danger));
+  border-radius: 4px;
+  position: relative;
+}
+
+.fraud-probability-marker {
+  position: absolute;
+  top: -8px;
+  width: 4px;
+  height: 36px;
+  background-color: #fff;
+  border: 1px solid #000;
+}
+
+/* Login page styling */
+.login-container {
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+.login-logo {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Code and JSON formatting */
+pre.code-block {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 1rem;
+  font-family: monospace;
+  overflow-x: auto;
+}
+
+/* Progress bar animation */
+.progress-bar.animated-progress {
+  transition: width 1s ease-in-out;
+}
+
+/* Custom toggle switches */
+.custom-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.custom-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.custom-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bs-secondary);
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.custom-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .custom-switch-slider {
+  background-color: var(--bs-primary);
+}
+
+input:focus + .custom-switch-slider {
+  box-shadow: 0 0 1px var(--bs-primary);
+}
+
+input:checked + .custom-switch-slider:before {
+  transform: translateX(26px);
+}
+
+/* Feature importance visualization */
+.feature-importance-bar {
+  height: 20px;
+  background-color: var(--bs-primary);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.feature-importance-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+/* Transaction details page */
+.transaction-header {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 0.25rem;
+  padding: 1rem;
+}
+
+.explanation-item {
+  padding: 10px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chart-container {
+    height: 250px;
+  }
+  
+  .metric-card h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .chart-container {
+    height: 200px;
+  }
+  
+  .btn-toolbar .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}

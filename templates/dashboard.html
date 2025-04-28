@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}FraudWatch - Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metric-card {
+        transition: transform 0.3s;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-chart-line me-2"></i>Fraud Monitoring Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" id="timeRangeSelector" data-bs-toggle="dropdown" aria-expanded="false">
+                Last 30 Days
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="timeRangeSelector">
+                <li><a class="dropdown-item time-range" href="#" data-days="7">Last 7 Days</a></li>
+                <li><a class="dropdown-item time-range active" href="#" data-days="30">Last 30 Days</a></li>
+                <li><a class="dropdown-item time-range" href="#" data-days="90">Last 90 Days</a></li>
+            </ul>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="refreshDashboard">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Loading Indicator -->
+<div id="loadingIndicator" class="text-center py-5" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading dashboard data...</p>
+</div>
+
+<!-- Dashboard Content -->
+<div id="dashboardContent">
+    <!-- Summary Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-dark metric-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Transactions</h5>
+                    <h2 class="mb-0" id="totalTransactions">-</h2>
+                    <p class="card-text small text-muted">Total processed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark metric-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Fraud Rate</h5>
+                    <h2 class="mb-0" id="fraudRate">-</h2>
+                    <p class="card-text small text-muted">Detected fraud percentage</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark metric-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">False Positives</h5>
+                    <h2 class="mb-0" id="falsePositiveRate">-</h2>
+                    <p class="card-text small text-muted">Of flagged transactions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark metric-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Active Model</h5>
+                    <h2 class="mb-0" id="modelVersion">-</h2>
+                    <p class="card-text small text-muted">Current model version</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Daily Transaction Volume & Fraud</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="dailyTransactionsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Fraud by Payment Method</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="paymentMethodChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Model Performance and Merchant Risk -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Model Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="modelPerformanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-dark">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">High-Risk Merchants</h5>
+                    <button class="btn btn-sm btn-outline-secondary" id="refreshMerchantRisk">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-dark">
+                            <thead>
+                                <tr>
+                                    <th>Merchant ID</th>
+                                    <th>Transactions</th>
+                                    <th>Fraud Rate</th>
+                                    <th>Avg Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="merchantRiskTable">
+                                <tr>
+                                    <td colspan="4" class="text-center">Loading merchant data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Flagged Transactions -->
+    <div class="card bg-dark mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Recent Flagged Transactions</h5>
+            <a href="{{ url_for('transactions') }}?fraud_only=true" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-dark">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Timestamp</th>
+                            <th>Amount</th>
+                            <th>Customer ID</th>
+                            <th>Fraud Score</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentTransactionsTable">
+                        <tr>
+                            <td colspan="7" class="text-center">Loading recent transactions...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Model Drift Monitoring -->
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Model Drift Monitoring</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="modelDriftChart"></canvas>
+            </div>
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-info-circle me-2"></i>
+                KL divergence measures distribution shift between training and current transaction data. 
+                Values consistently above 0.1 may indicate model retraining is needed.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/monitoring.js') }}"></script>
+{% endblock %}

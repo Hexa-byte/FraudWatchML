@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block title %}FraudWatch - User Profile{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-user-circle me-2"></i>User Profile</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-circle fa-6x text-secondary"></i>
+                    <h4 class="mt-3">{{ current_user.username }}</h4>
+                    <span class="badge bg-primary">{{ current_user.role }}</span>
+                </div>
+                
+                <ul class="list-group list-group-flush bg-dark">
+                    <li class="list-group-item bg-dark d-flex justify-content-between">
+                        <span>Email:</span>
+                        <span>{{ current_user.email }}</span>
+                    </li>
+                    <li class="list-group-item bg-dark d-flex justify-content-between">
+                        <span>Last Login:</span>
+                        <span>{{ current_user.last_login.strftime('%Y-%m-%d %H:%M') if current_user.last_login else 'Never' }}</span>
+                    </li>
+                    <li class="list-group-item bg-dark d-flex justify-content-between">
+                        <span>Account Created:</span>
+                        <span>{{ current_user.created_at.strftime('%Y-%m-%d') }}</span>
+                    </li>
+                    <li class="list-group-item bg-dark d-flex justify-content-between">
+                        <span>Account Status:</span>
+                        <span class="badge {% if current_user.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ 'Active' if current_user.is_active else 'Inactive' }}
+                        </span>
+                    </li>
+                </ul>
+                
+                <div class="mt-4">
+                    <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="fas fa-edit me-1"></i> Edit Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Security</h5>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-warning w-100 mb-3" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                    <i class="fas fa-key me-1"></i> Change Password
+                </button>
+                
+                {% if current_user.role in ['admin', 'analyst'] %}
+                <button class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#generateAPITokenModal">
+                    <i class="fas fa-code me-1"></i> Generate API Token
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-dark">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Action</th>
+                                <th>Resource</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2023-10-15 15:42:18</td>
+                                <td>Login</td>
+                                <td>User</td>
+                                <td>Successful login</td>
+                            </tr>
+                            <tr>
+                                <td>2023-10-15 14:37:52</td>
+                                <td>Review Transaction</td>
+                                <td>tx_12345678</td>
+                                <td>Marked as legitimate</td>
+                            </tr>
+                            <tr>
+                                <td>2023-10-15 13:25:41</td>
+                                <td>Review Transaction</td>
+                                <td>tx_87654321</td>
+                                <td>Marked as fraud</td>
+                            </tr>
+                            <tr>
+                                <td>2023-10-15 10:12:05</td>
+                                <td>Create Alert</td>
+                                <td>High Amount Alert</td>
+                                <td>Created new alert configuration</td>
+                            </tr>
+                            <tr>
+                                <td>2023-10-14 16:48:32</td>
+                                <td>Login</td>
+                                <td>User</td>
+                                <td>Successful login</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        {% if current_user.role in ['admin', 'analyst'] %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card bg-dark mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Performance Metrics</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush bg-dark">
+                            <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                                Transactions Reviewed
+                                <span class="badge bg-primary rounded-pill">127</span>
+                            </li>
+                            <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                                Correct Fraud Identifications
+                                <span class="badge bg-success rounded-pill">42</span>
+                            </li>
+                            <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                                False Positive Rate
+                                <span class="badge bg-info rounded-pill">4.2%</span>
+                            </li>
+                            <li class="list-group-item bg-dark d-flex justify-content-between align-items-center">
+                                Average Response Time
+                                <span class="badge bg-primary rounded-pill">2h 15m</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card bg-dark mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">API Access</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Active API Tokens</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-dark">
+                                <thead>
+                                    <tr>
+                                        <th>Created</th>
+                                        <th>Expires</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2023-10-01</td>
+                                        <td>2023-10-31</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                API tokens are valid for 30 days. Generate a new token before expiration to ensure uninterrupted access.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('security.update_profile') }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" value="{{ current_user.username }}" readonly>
+                        <div class="form-text">Username cannot be changed.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('security.change_password') }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword" name="current_password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPassword" name="new_password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            Password must be at least 8 characters long and include uppercase letters, lowercase letters, numbers, and special characters.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Generate API Token Modal -->
+<div class="modal fade" id="generateAPITokenModal" tabindex="-1" aria-labelledby="generateAPITokenModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="generateAPITokenModalLabel">Generate API Token</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('security.create_api_token') }}" method="post">
+                <div class="modal-body">
+                    <p>Generate a new API token for programmatic access to the FraudWatch API.</p>
+                    
+                    <div class="mb-3">
+                        <label for="tokenDuration" class="form-label">Token Duration</label>
+                        <select class="form-select" id="tokenDuration" name="token_duration">
+                            <option value="30" selected>30 days</option>
+                            <option value="60">60 days</option>
+                            <option value="90">90 days</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tokenDescription" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="tokenDescription" name="token_description" placeholder="e.g., Integration with core banking system">
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        The token will only be displayed once. Store it securely as it cannot be retrieved later.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Generate Token</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}FraudWatch - Alert Configurations{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-bell me-2"></i>Alert Configurations</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('new_alert') }}" class="btn btn-sm btn-primary">
+            <i class="fas fa-plus me-1"></i> Create New Alert
+        </a>
+    </div>
+</div>
+
+<div class="card bg-dark">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Active Alert Configurations</h5>
+    </div>
+    <div class="card-body">
+        {% if alert_configs %}
+        <div class="table-responsive">
+            <table class="table table-hover table-dark">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Condition</th>
+                        <th>Threshold</th>
+                        <th>Status</th>
+                        <th>Created By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in alert_configs %}
+                    <tr>
+                        <td>{{ alert.name }}</td>
+                        <td>
+                            <code>{{ alert.condition }}</code>
+                        </td>
+                        <td>{{ alert.threshold }}</td>
+                        <td>
+                            {% if alert.active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ alert.created_by }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#viewAlertModal{{ alert.id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editAlertModal{{ alert.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAlertModal{{ alert.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- View Alert Modal -->
+                            <div class="modal fade" id="viewAlertModal{{ alert.id }}" tabindex="-1" aria-labelledby="viewAlertModalLabel{{ alert.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content bg-dark">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="viewAlertModalLabel{{ alert.id }}">Alert Details: {{ alert.name }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6>Basic Information</h6>
+                                                    <table class="table table-dark">
+                                                        <tbody>
+                                                            <tr>
+                                                                <th>Name</th>
+                                                                <td>{{ alert.name }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Description</th>
+                                                                <td>{{ alert.description or 'No description provided' }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Status</th>
+                                                                <td>
+                                                                    {% if alert.active %}
+                                                                    <span class="badge bg-success">Active</span>
+                                                                    {% else %}
+                                                                    <span class="badge bg-secondary">Inactive</span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Created By</th>
+                                                                <td>{{ alert.created_by }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Created At</th>
+                                                                <td>{{ alert.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6>Alert Configuration</h6>
+                                                    <table class="table table-dark">
+                                                        <tbody>
+                                                            <tr>
+                                                                <th>Condition</th>
+                                                                <td><code>{{ alert.condition }}</code></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Threshold</th>
+                                                                <td>{{ alert.threshold }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Notification Emails</th>
+                                                                <td>{{ alert.notification_emails or 'None' }}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Edit Alert Modal -->
+                            <div class="modal fade" id="editAlertModal{{ alert.id }}" tabindex="-1" aria-labelledby="editAlertModalLabel{{ alert.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content bg-dark">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editAlertModalLabel{{ alert.id }}">Edit Alert: {{ alert.name }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form action="{{ url_for('edit_alert', alert_id=alert.id) }}" method="post">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="editName{{ alert.id }}" class="form-label">Alert Name</label>
+                                                    <input type="text" class="form-control" id="editName{{ alert.id }}" name="name" value="{{ alert.name }}" required>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="editDescription{{ alert.id }}" class="form-label">Description</label>
+                                                    <textarea class="form-control" id="editDescription{{ alert.id }}" name="description" rows="3">{{ alert.description }}</textarea>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="editCondition{{ alert.id }}" class="form-label">Alert Condition (JSON)</label>
+                                                    <textarea class="form-control font-monospace" id="editCondition{{ alert.id }}" name="condition" rows="5" required>{{ alert.condition }}</textarea>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="editThreshold{{ alert.id }}" class="form-label">Threshold Value</label>
+                                                    <input type="number" class="form-control" id="editThreshold{{ alert.id }}" name="threshold" step="0.01" value="{{ alert.threshold }}" required>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="editNotificationEmails{{ alert.id }}" class="form-label">Notification Emails</label>
+                                                    <input type="text" class="form-control" id="editNotificationEmails{{ alert.id }}" name="notification_emails" value="{{ alert.notification_emails }}">
+                                                </div>
+                                                
+                                                <div class="mb-3 form-check">
+                                                    <input type="checkbox" class="form-check-input" id="editActive{{ alert.id }}" name="active" {% if alert.active %}checked{% endif %}>
+                                                    <label class="form-check-label" for="editActive{{ alert.id }}">Active</label>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Delete Alert Modal -->
+                            <div class="modal fade" id="deleteAlertModal{{ alert.id }}" tabindex="-1" aria-labelledby="deleteAlertModalLabel{{ alert.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content bg-dark">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteAlertModalLabel{{ alert.id }}">Delete Alert</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete the alert <strong>{{ alert.name }}</strong>?</p>
+                                            <p class="text-danger">This action cannot be undone.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{{ url_for('delete_alert', alert_id=alert.id) }}" method="post">
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            No alert configurations found. <a href="{{ url_for('new_alert') }}" class="alert-link">Create your first alert</a>.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card bg-dark mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Alert Activity</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-dark">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Alert</th>
+                        <th>Transaction ID</th>
+                        <th>Value</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2023-10-15 14:23:45</td>
+                        <td>High Fraud Score</td>
+                        <td>tx_98765432</td>
+                        <td>0.92</td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2023-10-15 12:48:32</td>
+                        <td>Large Transaction</td>
+                        <td>tx_87654321</td>
+                        <td>$15,750.00</td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2023-10-15 09:12:18</td>
+                        <td>Suspicious Merchant</td>
+                        <td>tx_76543210</td>
+                        <td>merchant_954</td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
